@@ -38,7 +38,7 @@ async function connectToDatabase() {
         // Táblák szinkronizálása a modellek alapján
         await sequelize.sync({
             force: false,
-            alter: true
+            alter: false
         });
         console.log("Minden modell szinkronizálva az adatbázissal.");
     } catch (error) {

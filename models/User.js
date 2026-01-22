@@ -16,6 +16,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     password: {
       type: DataTypes.STRING,
       allowNull: false
@@ -37,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false
   });
 
-  User.associate = function(models) {
+  User.associate = function (models) {
     User.hasMany(models.Task, {
       foreignKey: 'userId',
     });
