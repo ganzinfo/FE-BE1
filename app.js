@@ -1,6 +1,6 @@
 // 1. Importáljuk az Express modult
 const express = require('express');
-const { connectToDatabase, models } = require('./db'); // Adatbázis modul importálása
+const { connectToDatabase, models } = require('./repositories/db'); // Adatbázis modul importálása
 
 // Útvonalak importálása
 const taskRoutes = require('./routes/taskRoutes');
@@ -25,7 +25,21 @@ async function initializeApp() {
 
 initializeApp();
 
-// 5. Útvonalak "bekötése"
+// 5. Root endpoint - API információk
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Üdvözöllek az API-ban!',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      tasks: '/tasks',
+      users: '/users'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 6. Útvonalak "bekötése"
 // A /tasks kezdetű kéréseket a taskRoutes kezeli
 app.use('/tasks', taskRoutes);
 // A /users kezdetű kéréseket a userRoutes kezeli

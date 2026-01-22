@@ -1,4 +1,4 @@
-const { models } = require('../db');
+const { models } = require('./db');
 const { Task: TaskModel, User: UserModel } = models;
 
 const create = (taskData) => {
