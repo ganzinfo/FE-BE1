@@ -5,7 +5,7 @@ const crypto = require('crypto');
 // --- MÓDOSÍTÁS VÉGE ---
 
 const hashPassword = async (password) => {
-  const saltRounds = 10; // Ajánlott salt körök száma, 10 jó alapértelmezett
+  const saltRounds = 3; // Ajánlott salt körök száma, 10 jó alapértelmezett
   return bcrypt.hash(password, saltRounds);
 };
 
@@ -65,6 +65,7 @@ module.exports = {
   getAllUsers,
   deleteUser,
   registerUser,
+  hashPassword,
   // --- MÓDOSÍTÁS KEZDETE ---
   loginUser,
   // --- MÓDOSÍTÁS VÉGE ---
