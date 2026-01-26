@@ -10,10 +10,10 @@ const hashPassword = async (password) => {
 };
 
 const registerUser = async (userData) => {
-  const { email, name, password } = userData;
+  const { email, username, password } = userData;
 
   const hashedPassword = await hashPassword(password);
-  return userRepository.create({ email, name, password: hashedPassword });
+  return userRepository.create({ email, username, password: hashedPassword });
 };
 
 // --- MÓDOSÍTÁS KEZDETE ---

@@ -12,9 +12,9 @@ const registerValidationRules = () => {
           return Promise.reject('Ez az e-mail cím már regisztrálva van.');
         }
       }),
-      // --- MÓDOSÍTÁS VÉGE ---
+    // --- MÓDOSÍTÁS VÉGE ---
     body('password').notEmpty().withMessage('A "password" mező kitöltése kötelező.'),
-    body('name').optional().isString().withMessage('A "name" mezőnek szövegnek kell lennie.'),
+    body('username').optional().isString().withMessage('A "username" mezőnek szövegnek kell lennie.'),
   ];
 };
 

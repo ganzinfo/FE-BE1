@@ -1,10 +1,10 @@
-// 1. Importáljuk a szükséges modulokat
 const { Sequelize, DataTypes } = require('sequelize');
+const path = require('path');
 
 // 2. Sequelize Kapcsolat Létrehozása (SQLite fájl)
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: './BE/database.sqlite', // Az adatbázis fájl neve
+    storage: path.join(__dirname, '..', 'database.sqlite'), // Az adatbázis fájl helye
     logging: false, // Kikapcsolja a Sequelize SQL logjait
 });
 

@@ -37,7 +37,8 @@ app.get('/', (req, res) => {
       tasks: '/tasks',
       users: '/users'
     },
-    timestamp: new Date().toISOString()
+    timestamp_UTC: new Date().toISOString(),
+    timestamp_CET: new Date().toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' })
   });
 });
 
