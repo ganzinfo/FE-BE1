@@ -8,6 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 
 // 2. Létrehozzuk az alkalmazás példányát
 const app = express();
+const cors = require('cors');
+app.use(cors());
 //middleware a JSON body-k kezeléséhez
 app.use(express.json());
 
