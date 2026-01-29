@@ -1,5 +1,5 @@
 // createUsers.js - 150 új felhasználó létrehozása
-const { connectToDatabase, models } = require('./repositories/db');
+const { connectToDatabase, models } = require('../repositories/db');
 const { User } = models;
 const bcrypt = require('bcrypt');
 
