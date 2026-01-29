@@ -1,5 +1,6 @@
 // 1. Importáljuk az Express modult
 const express = require('express');
+const morgan = require('morgan');
 const { connectToDatabase, models } = require('./repositories/db'); // Adatbázis modul importálása
 
 // Útvonalak importálása
@@ -10,6 +11,8 @@ const userRoutes = require('./routes/userRoutes');
 const app = express();
 const cors = require('cors');
 app.use(cors());
+// 3. Logolás beállítása (morgan)
+app.use(morgan('dev'));
 //middleware a JSON body-k kezeléséhez
 app.use(express.json());
 
