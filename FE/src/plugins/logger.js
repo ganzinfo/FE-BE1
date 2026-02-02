@@ -5,23 +5,21 @@
 
 const logger = {
     install: (app, options = {}) => {
-        const isProd = process.env.NODE_ENV === 'production';
+        const isProd = import.meta.env.PROD;
         const prefix = options.prefix || '[APP]';
 
         const getTimestamp = () => new Date().toLocaleTimeString();
 
         const formatLog = (level, color, msg, data) => {
-            // In production, we might want to disable non-error logs or route them to a service
             if (isProd && level !== 'error') return;
 
             const styles = `color: white; background: ${color}; padding: 2px 5px; border-radius: 3px; font-weight: bold;`;
             const timeStyles = `color: gray; font-size: 0.8em;`;
 
-            console.groupCollapsed(`%c${getTimestamp()}%c %c${level.toUpperCase()}%c ${prefix} ${msg}`, timeStyles, '', styles, '', '');
+            console.log(`%c${getTimestamp()}%c %c${level.toUpperCase()}%c ${prefix} ${msg}`, timeStyles, '', styles, '', '');
             if (data) {
-                console.log('Data details:', data);
+                console.log('   ↳ Data:', data);
             }
-            console.groupEnd();
         };
 
         const $log = {

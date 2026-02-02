@@ -9,7 +9,7 @@ const authenticateToken = require('../middlewares/authMiddleware');
 router.post('/', createTaskValidationRules(), validate, taskController.createTask);
 
 // GET /tasks - Összes feladat lekérdezése
-router.get('/', authenticateToken, taskController.getAllTasks);
+router.get('/', taskController.getAllTasks);
 
 // GET /tasks/page/:page - Feladatok lekérdezése lapozással (max 10)
 router.get('/page/:page', paginationValidationRules(), validate, taskController.getTasksPaginated);

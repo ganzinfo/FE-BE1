@@ -18,7 +18,7 @@ const getAllTasks = async (req, res) => {
     res.json(tasks);
   } catch (error) {
     console.error('Hiba a feladatok lekérdezésekor:', error);
-    res.status(500).json({ error: 'Hiba a feladatok lekérdezésekor.' });
+    res.status(error.statusCode || 500).json({ error: error.message || 'Hiba a feladatok lekérdezésekor.' });
   }
 };
 

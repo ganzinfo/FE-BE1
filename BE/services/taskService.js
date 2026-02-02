@@ -14,15 +14,7 @@ const createTask = async (taskData) => {
   return taskRepository.create(taskData);
 };
 
-const getAllTasks = (user) => {
-  // Ellenőrizzük, hogy a felhasználó létezik-e és admin-e.
-  // Ha a user objektum hiányzik, vagy az 'admin' mező nem igaz, hibát dobunk.
-  if (!user || !user.admin) {
-    const error = new Error('Nincs jogosultságod a művelethez.');
-    error.statusCode = 403; // 403 Forbidden - A kérés jogosultsági okokból tiltott.
-    throw error;
-  }
-
+const getAllTasks = () => {
   return taskRepository.findAll();
 };
 

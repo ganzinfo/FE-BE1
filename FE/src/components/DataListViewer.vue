@@ -16,7 +16,10 @@ const fetchTableData = async () => {
   error.value = null
   try {
     const response = await fetch(`/api/${selectedTable.value}`)
-    if (!response.ok) throw new Error(`Hiba a lekérés során: ${response.status}`)
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `Hiba a lekérés során: ${response.status}`)
+    }
     const result = await response.json()
     
     // API returns { success: true, count: X, data: [...] } for users
