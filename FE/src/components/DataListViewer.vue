@@ -9,36 +9,49 @@ const columns = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const pageInput = ref(1)
+const sortKey = ref(null)
+const sortOrder = ref(1) // 1: ASC, -1: DESC
 
 watch(currentPage, (val) => {
   pageInput.value = val
 })
 
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
 const $log = inject('logger')
 
 const fetchTableData = async () => {
   $log.info(`Adatok betöltése: ${selectedTable.value}`)
   error.value = null
+  loading.value = true
   try {
-    const response = await fetch(`/api/${selectedTable.value}/page/${currentPage.value}`)
+    let url = `/api/${selectedTable.value}`
+    if (selectedTable.value === 'users') {
+      url += `/page/${currentPage.value}`
+    }
+
+    const response = await fetch(url)
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.error || `Hiba a lekérés során: ${response.status}`)
     }
     const result = await response.json()
     
-    // API returns { users: [...], totalPages, currentPage, ... } or { tasks: [...], totalPages, ... }
-    const items = result.users || result.tasks || []
-    totalPages.value = result.totalPages || 1
-    data.value = items
+    if (selectedTable.value === 'users') {
+      const items = result.users || []
+      totalPages.value = result.totalPages || 1
+      data.value = items
+    } else {
+      // For tasks or other non-paginated tables
+      data.value = Array.isArray(result) ? result : (result.tasks || [])
+      totalPages.value = 1
+    }
 
-    if (items.length > 0) {
-      columns.value = Object.keys(items[0])
+    if (data.value.length > 0) {
+      columns.value = Object.keys(data.value[0])
     } else {
       columns.value = []
     }
-    $log.success(`Sikeres betöltés: ${items.length} elem`, { table: selectedTable.value })
+    $log.success(`Sikeres betöltés: ${data.value.length} elem`, { table: selectedTable.value })
   } catch (e) {
     error.value = e.message
     $log.error(`Hiba történt a(z) ${selectedTable.value} tábla betöltésekor`, e)
@@ -67,8 +80,37 @@ const handlePageJump = () => {
   }
 }
 
+const toggleSort = (key) => {
+  if (selectedTable.value !== 'tasks') return
+  if (key !== 'name' && key !== 'description' && key !== 'title') return
+
+  if (sortKey.value === key) {
+    sortOrder.value *= -1
+  } else {
+    sortKey.value = key
+    sortOrder.value = 1
+  }
+}
+
+const displayedData = computed(() => {
+  if (selectedTable.value !== 'tasks' || !sortKey.value) {
+    return data.value
+  }
+
+  return [...data.value].sort((a, b) => {
+    const valA = (a[sortKey.value] || '').toString().toLowerCase()
+    const valB = (b[sortKey.value] || '').toString().toLowerCase()
+    
+    if (valA < valB) return -1 * sortOrder.value
+    if (valA > valB) return 1 * sortOrder.value
+    return 0
+  })
+})
+
 watch(selectedTable, () => {
   currentPage.value = 1
+  sortKey.value = null
+  sortOrder.value = 1
   fetchTableData()
 })
 
@@ -91,7 +133,7 @@ onMounted(() => {
         Találatok: <strong>{{ data.length }}</strong>
       </div>
       
-      <div class="pagination-controls" v-if="totalPages > 1">
+      <div class="pagination-controls" v-if="selectedTable === 'users' && totalPages > 1">
         <button @click="changePage(-1)" :disabled="currentPage === 1" class="btn-nav">
           &larr;
         </button>
@@ -111,6 +153,10 @@ onMounted(() => {
           &rarr;
         </button>
       </div>
+      <div class="sorting-info" v-if="selectedTable === 'tasks'">
+        Rendezés: <strong>{{ sortKey ? (sortKey === 'name' ? 'Név' : (sortKey === 'title' ? 'Cím' : 'Leírás')) : 'Nincs' }}</strong>
+        <span v-if="sortKey">({{ sortOrder === 1 ? 'A-Z' : 'Z-A' }})</span>
+      </div>
     </div>
 
     <div v-if="loading" class="loader-container">
@@ -123,14 +169,27 @@ onMounted(() => {
     </div>
 
     <div v-else class="table-container glass">
-      <table v-if="data.length > 0">
+      <table v-if="displayedData.length > 0">
         <thead>
           <tr>
-            <th v-for="col in columns" :key="col">{{ col }}</th>
+            <th 
+              v-for="col in columns" 
+              :key="col"
+              @click="toggleSort(col)"
+              :class="{ 
+                'sortable': selectedTable === 'tasks' && (col === 'name' || col === 'description' || col === 'title'),
+                'active-sort': sortKey === col 
+              }"
+            >
+              {{ col }}
+              <span v-if="sortKey === col" class="sort-icon">
+                {{ sortOrder === 1 ? '↑' : '↓' }}
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in data" :key="index">
+          <tr v-for="(item, index) in displayedData" :key="index">
             <td v-for="col in columns" :key="col">
               <span v-if="col === 'admin'">{{ item[col] ? '✅' : '❌' }}</span>
               <span v-else>{{ item[col] }}</span>
@@ -288,7 +347,34 @@ th {
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.05em;
-  min-width: 150px; /* Alapértelmezett oszlopszélesség */
+  min-width: 150px;
+  transition: all 0.2s;
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sortable:hover {
+  background: rgba(100, 108, 255, 0.4);
+  color: #fff;
+}
+
+th.active-sort {
+  background: rgba(100, 108, 255, 0.5);
+  color: #fff;
+}
+
+.sort-icon {
+  margin-left: 0.5rem;
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.sorting-info {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 th:first-child, td:first-child {
