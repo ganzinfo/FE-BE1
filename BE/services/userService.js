@@ -61,11 +61,21 @@ const deleteUser = async (id) => {
   return userToDelete; // Visszaadjuk a törölt felhasználó adatait a sikeres művelet jelzésére
 };
 
+const getUsersPaginated = async (page) => {
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  const { rows: users, count } = await userRepository.findAndCountAllPaginated(limit, offset);
+
+  return { users, totalItems: count, totalPages: Math.ceil(count / limit), currentPage: page };
+};
+
 module.exports = {
   getAllUsers,
   deleteUser,
   registerUser,
   hashPassword,
+  getUsersPaginated,
   // --- MÓDOSÍTÁS KEZDETE ---
   loginUser,
   // --- MÓDOSÍTÁS VÉGE ---

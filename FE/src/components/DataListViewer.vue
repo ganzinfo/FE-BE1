@@ -6,31 +6,35 @@ const data = ref([])
 const loading = ref(false)
 const error = ref(null)
 const columns = ref([])
+const currentPage = ref(1)
+const totalPages = ref(1)
+const pageInput = ref(1)
+
+watch(currentPage, (val) => {
+  pageInput.value = val
+})
 
 import { inject } from 'vue'
 const $log = inject('logger')
 
 const fetchTableData = async () => {
   $log.info(`Adatok betöltése: ${selectedTable.value}`)
-  loading.value = true
   error.value = null
   try {
-    const response = await fetch(`/api/${selectedTable.value}`)
+    const response = await fetch(`/api/${selectedTable.value}/page/${currentPage.value}`)
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.error || `Hiba a lekérés során: ${response.status}`)
     }
     const result = await response.json()
     
-    // API returns { success: true, count: X, data: [...] } for users
-    // and potentially just an array for others, or different structure.
-    // Let's normalize based on what we see in taskController/userController
-    
-    const items = Array.isArray(result) ? result : (result.data || [])
+    // API returns { users: [...], totalPages, currentPage, ... } or { tasks: [...], totalPages, ... }
+    const items = result.users || result.tasks || []
+    totalPages.value = result.totalPages || 1
     data.value = items
 
     if (items.length > 0) {
-      columns.value = Object.keys(items[0]).filter(key => key !== 'password')
+      columns.value = Object.keys(items[0])
     } else {
       columns.value = []
     }
@@ -44,7 +48,27 @@ const fetchTableData = async () => {
   }
 }
 
+const changePage = (delta) => {
+  const newPage = currentPage.value + delta
+  if (newPage >= 1 && newPage <= totalPages.value) {
+    currentPage.value = newPage
+    fetchTableData()
+  }
+}
+
+const handlePageJump = () => {
+  const page = parseInt(pageInput.value)
+  if (!isNaN(page) && page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    fetchTableData()
+  } else {
+    // Revert to current page if invalid
+    pageInput.value = currentPage.value
+  }
+}
+
 watch(selectedTable, () => {
+  currentPage.value = 1
   fetchTableData()
 })
 
@@ -65,6 +89,27 @@ onMounted(() => {
       </div>
       <div class="stats" v-if="data.length > 0">
         Találatok: <strong>{{ data.length }}</strong>
+      </div>
+      
+      <div class="pagination-controls" v-if="totalPages > 1">
+        <button @click="changePage(-1)" :disabled="currentPage === 1" class="btn-nav">
+          &larr;
+        </button>
+        <span class="page-info">
+          <input 
+            type="number" 
+            v-model.lazy="pageInput" 
+            @keyup.enter="handlePageJump"
+            @blur="handlePageJump"
+            class="page-input"
+            min="1"
+            :max="totalPages"
+          >
+          / {{ totalPages }}
+        </span>
+        <button @click="changePage(1)" :disabled="currentPage === totalPages" class="btn-nav">
+          &rarr;
+        </button>
       </div>
     </div>
 
@@ -118,6 +163,72 @@ onMounted(() => {
   border-radius: 16px;
 }
 
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-nav {
+  background: rgba(100, 108, 255, 0.2);
+  border: 1px solid var(--primary-color);
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.btn-nav:hover:not(:disabled) {
+  background: var(--primary-color);
+  box-shadow: 0 0 10px rgba(100, 108, 255, 0.5);
+}
+
+.btn-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.page-info {
+  color: #fff;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-input {
+  width: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  text-align: center;
+  font-weight: bold;
+  font-family: inherit;
+  outline: none;
+}
+
+.page-input:focus {
+  border-color: #646cff;
+}
+
+/* Hide arrows/spinners in number input */
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.page-input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .control-group {
   display: flex;
   align-items: center;
@@ -139,6 +250,11 @@ select {
   outline: none;
   font-size: 1rem;
   transition: all 0.3s ease;
+}
+
+select option {
+  background-color: #1a1a2e;
+  color: #fff;
 }
 
 select:focus {
@@ -172,6 +288,15 @@ th {
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.05em;
+  min-width: 150px; /* Alapértelmezett oszlopszélesség */
+}
+
+th:first-child, td:first-child {
+  min-width: 60px; /* ID oszlop lehet keskenyebb */
+}
+
+th:last-child, td:last-child {
+  min-width: 100px; /* Pl. admin vagy műveletek oszlop */
 }
 
 td {
@@ -179,6 +304,18 @@ td {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px; /* Hogy ne nyúljon túl nagyra */
+}
+
+td:hover {
+  white-space: normal; /* Hoverre mutassa a teljes szöveget ha kell */
+  overflow: visible;
+  position: relative;
+  z-index: 10;
+  background: #1a1a2e;
 }
 
 tr:hover {

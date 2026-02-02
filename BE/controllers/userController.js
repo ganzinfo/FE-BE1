@@ -11,6 +11,18 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// GET /users/page/:page
+const getUsersPaginated = async (req, res) => {
+  try {
+    const page = parseInt(req.params.page, 10);
+    const result = await userService.getUsersPaginated(page);
+    res.json(result);
+  } catch (error) {
+    console.error('Hiba a felhasználók lapozott lekérdezésekor:', error);
+    res.status(500).json({ error: 'Hiba a felhasználók lapozott lekérdezésekor.' });
+  }
+};
+
 // DELETE /users/:id - Felhasználó törlése
 const deleteUser = async (req, res) => {
   try {
@@ -29,14 +41,14 @@ const deleteUser = async (req, res) => {
 };
 
 const registerUser = async (req, res) => {
-    try {
-      const newUser = await userService.registerUser(req.body);
-      res.status(201).json(newUser);
-    } catch (error) {
-      console.error('Hiba az új user létrehozásakor:', error);
-      res.status(error.statusCode || 500).json({ error: error.message || 'Szerveroldali hiba.' });
-    }
-  };
+  try {
+    const newUser = await userService.registerUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error) {
+    console.error('Hiba az új user létrehozásakor:', error);
+    res.status(error.statusCode || 500).json({ error: error.message || 'Szerveroldali hiba.' });
+  }
+};
 
 // --- MÓDOSÍTÁS KEZDETE ---
 const loginUser = async (req, res) => {
@@ -53,6 +65,7 @@ const loginUser = async (req, res) => {
 
 module.exports = {
   getAllUsers,
+  getUsersPaginated,
   deleteUser,
   registerUser,
   loginUser, // --- MÓDOSÍTÁS ---

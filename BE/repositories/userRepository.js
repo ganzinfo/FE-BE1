@@ -1,6 +1,8 @@
 const { models } = require('./db');
 const { User: UserModel } = models;
 
+const sensitiveFields = ['password', 'token', 'valid_thru'];
+
 /**
  * Új felhasználó létrehozása az adatbázisban.
  * @param {object} userData A felhasználó adatai.
@@ -24,7 +26,9 @@ const findOne = (query) => {
  * @returns {Promise<User[]>} A felhasználók listája.
  */
 const findAll = () => {
-  return UserModel.findAll();
+  return UserModel.findAll({
+    attributes: { exclude: sensitiveFields }
+  });
 };
 
 /**
@@ -55,6 +59,20 @@ const update = (user, data) => {
   return user.update(data);
 };
 
+/**
+ * Összes felhasználó lekérdezése lapozással.
+ * @param {number} limit Az egy oldalon megjelenítendő elemek száma.
+ * @param {number} offset Az eltolás mértéke.
+ * @returns {Promise<{rows: User[], count: number}>} A felhasználók listája és az összes elem száma.
+ */
+const findAndCountAllPaginated = (limit, offset) => {
+  return UserModel.findAndCountAll({
+    limit: limit,
+    offset: offset,
+    attributes: { exclude: sensitiveFields }
+  });
+};
+
 module.exports = {
   create,
   findOne,
@@ -62,4 +80,5 @@ module.exports = {
   findById,
   deleteById,
   update,
+  findAndCountAllPaginated,
 };
