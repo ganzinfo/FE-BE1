@@ -12,7 +12,8 @@ const testCases = [
     { title: 'Ékezetek vegyesen', samples: ['őz', 'óra', 'ölt', 'olvas'], expected: ['olvas', 'óra', 'ölt', 'őz'] },
     { title: 'Kettős betűk (c < cs)', samples: ['cukor', 'csata', 'cica'], expected: ['cica', 'cukor', 'csata'] },
     { title: 'Kettős betűk (s < sz)', samples: ['szép', 'soha', 'szár'], expected: ['soha', 'szár', 'szép'] },
-    { title: 'Hármas betűk (d < dz < dzs)', samples: ['edző', 'dzsungel', 'dzéta', 'daru'], expected: ['daru', 'dzéta', 'dzsungel', 'edző'] },
+    { title: 'Hármas betűk (d < dz < dzs)', samples: ['edami', 'edu', 'edző', 'dzsungel', 'dzéta', 'daru'], expected: ['daru', 'dzéta', 'dzsungel', 'edami', 'edu', 'edző'] },
+    { title: 'Hármas betűk (d < dz < dzs)', samples: ['madzag', 'maduro', 'madeira', 'madmazel', 'madagaszkár'], expected: ['madagaszkár', 'madzag', 'madeira', 'madmazel', 'maduro'] },
     { title: 'Összetett példa (Z < Zs)', samples: ['Zoltán', 'Zsófia', 'Zebra', 'Zsolt'], expected: ['Zebra', 'Zoltán', 'Zsófia', 'Zsolt'] }
 ];
 
